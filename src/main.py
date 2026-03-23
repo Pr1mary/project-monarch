@@ -1,24 +1,26 @@
 
 import sys
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 from util.consumer import Consumer
 from util.db import DbConn
 from core.data_processor import DataProcessor
 
 def main():
-  dbconn = DbConn(host='192.168.1.101',
-                  port=3306,
-                  user='n8n_monarch',
-                  password='YhOqrJhPpVectSUD@aTVTkc2',
-                  database='project_monarch')
+  dbconn = DbConn(host=os.getenv('db_host'),
+                  port=os.getenv('db_port'),
+                  user=os.getenv('db_user'),
+                  password=os.getenv('db_password'),
+                  database=os.getenv('db_name'))
   
   data_processor = DataProcessor(dbconn)
 
-  consumer = Consumer(host='192.168.1.64',
-                      vhost='project-monarch',
-                      username='rabbitmq',
-                      password='^FYx3oo5ULfl*j*EoXi%D#9&')
+  consumer = Consumer(host=os.getenv('rabbitmq-host'),
+                      vhost=os.getenv('rabbitmq-vhost'),
+                      username=os.getenv('rabbitmq-username'),
+                      password=os.getenv('rabbitmq-password'))
   consumer.listen("parse-email", data_processor.callback)
 
 if __name__ == "__main__":
