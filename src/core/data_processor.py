@@ -1,9 +1,9 @@
 
 from util.db import DbConn
+from util.html_parser import HtmlParser
 from model.raw_email import RawEmailModel
-import traceback
 
-from lxml import html
+import traceback
 
 class DataProcessor:
 
@@ -43,10 +43,10 @@ class DataProcessor:
       print(f"ERROR - Broken message detected!")
 
   def parseBillingStatement(self, content:str):
-    doc = html.fromstring(content)
+    doc = HtmlParser(content)
     
-    cust_cels = self.parseHtml(doc, "ID Langganan", "h4", "td", ".//h4")
-    payment_cells = self.parseHtml(doc, "Jumlah Tagihan", "h4", "table", ".//td|.//th")
+    cust_cels = doc.parseHtml("ID Langganan", "h4", "td", ".//h4")
+    payment_cells = doc.parseHtml("Jumlah Tagihan", "h4", "table", ".//td|.//th")
 
     result = {
       "cust_id": cust_cels[1],
@@ -56,15 +56,3 @@ class DataProcessor:
     }
 
     return result
-
-  def parseHtml(self, doc, label, search_tag, root_tag, target_tag_xpath):
-    node = doc.xpath(f"//{search_tag}[contains(normalize-space(), '{label}')]")
-    if not node:
-      return None
-    
-    node = node[0]
-    while node is not None and node.tag.lower() != root_tag:
-      node = node.getparent()
-    
-    cells = [c.text_content().strip() for c in node.xpath(target_tag_xpath)]
-    return cells
