@@ -10,7 +10,7 @@ from core.data_processor import DataProcessor
 
 def main():
   dbconn = DbConn(host=os.getenv('db_host'),
-                  port=os.getenv('db_port'),
+                  port=int(os.getenv('db_port')),
                   user=os.getenv('db_user'),
                   password=os.getenv('db_password'),
                   database=os.getenv('db_name'))
