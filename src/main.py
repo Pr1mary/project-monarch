@@ -1,6 +1,7 @@
 
 import sys
 import os
+import logging
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -17,17 +18,18 @@ def main():
   
   data_processor = DataProcessor(dbconn)
 
-  consumer = Consumer(host=os.getenv('rabbitmq-host'),
-                      vhost=os.getenv('rabbitmq-vhost'),
-                      username=os.getenv('rabbitmq-username'),
-                      password=os.getenv('rabbitmq-password'))
+  consumer = Consumer(host=os.getenv('rabbitmq_host'),
+                      vhost=os.getenv('rabbitmq_vhost'),
+                      username=os.getenv('rabbitmq_username'),
+                      password=os.getenv('rabbitmq_password'))
   consumer.listen("parse-email", data_processor.callback)
 
 if __name__ == "__main__":
   try:
+    logging.basicConfig(level=logging.INFO)
     main()
   except KeyboardInterrupt:
-    print("User exit")
+    logging.info("User exit")
     try:
       sys.exit(0)
     except SystemExit:

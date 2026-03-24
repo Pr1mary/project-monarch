@@ -1,5 +1,6 @@
 
 import pika
+import logging
 
 class Consumer:
 
@@ -16,5 +17,5 @@ class Consumer:
     
     channel.basic_consume(queue, auto_ack=True, on_message_callback=callback)
     
-    print(f"Starting '{queue}' consumer... ctrl+c to exit")
+    logging.info(f"Starting '{queue}' consumer... ctrl+c to exit")
     channel.start_consuming()

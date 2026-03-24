@@ -5,6 +5,7 @@ from model.raw_email import RawEmailModel
 
 from dateutil import parser as date_parser
 import traceback
+import logging
 
 class DataProcessor:
 
@@ -19,7 +20,7 @@ class DataProcessor:
       msg_data = raw_msg.split("-")
       first_id = int(msg_data[1])
       data_len = int(msg_data[3])
-      print(f"INFO - Email fetched length {data_len} starting at id {first_id}")
+      logging.info(f"Email fetched length {data_len} starting at id {first_id}")
 
       raw_result_list = self.fetchRawEmail(first_id, data_len)
 
@@ -49,10 +50,10 @@ class DataProcessor:
         else:
           self.insertPaymentLog(bill_data.get("data"))
 
-      print("DONE - parsing data finished!")
+      logging.info("Processing data finished!")
     except Exception as err:
       traceback.print_exc()
-      print(f"ERROR - Broken message detected!")
+      logging.error(f"Broken messages detected!")
 
   def parseBillingStatement(self, content:str):
     doc = HtmlParser(content)
@@ -105,14 +106,14 @@ class DataProcessor:
       cmd_create_acc = f'INSERT INTO myrep_cust_account(cust_id, created_by) VALUES (%s, %s)'
       create_acc_res = self.dbconn.query(cmd_create_acc, (cust_id, self.system_id))
       if create_acc_res == 0:
-        print("FAILED - create customer data")
+        logging.error("Failed creating customer data")
         return None
       
       check_acc_res = self.dbconn.query(qy_check_acc, (cust_id,))
     
     acc_id = check_acc_res[0].get("id")
     if acc_id in [None, ""]:
-      print("FAILED - problem with customer data")
+      logging.error("Problem with customer data")
       return None
     
     return acc_id
@@ -145,7 +146,7 @@ class DataProcessor:
       ))
     
     if create_bill_res == 0:
-      print("FAILED - create billing data")
+      logging.error("Failed create billing data")
       return
 
   def insertPaymentLog(self, data):
@@ -184,6 +185,6 @@ class DataProcessor:
       ))
     
     if create_payment_res == 0:
-      print("FAILED - create payment data")
+      logging.error("Failed create payment data")
       return
     
