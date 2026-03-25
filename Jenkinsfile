@@ -80,7 +80,7 @@ pipeline {
                                 docker run --name "${CONTAINER_NAME}" -e db_user=${db_user} -e db_password=${db_password} \
                                 -e rabbitmq_username=${rabbitmq_username} -e rabbitmq_password=${rabbitmq_password} \
                                 -e db_host=${db_host} -e db_port=${db_port} -e db_name=${db_name} \
-                                -e rabbitmq_host=${rabbitmq_host} -e rabbitmq_vhost=${db_name} \
+                                -e rabbitmq_host=${rabbitmq_host} -e rabbitmq_vhost=${rabbitmq_vhost} \
                                 --restart=${RESTART_POLICY} -d ${DOCKER_IMAGE}:${DOCKER_TAG}
                             """
                         }
