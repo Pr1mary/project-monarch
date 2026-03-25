@@ -17,6 +17,7 @@ class DataProcessor:
   def callback(self, ch, method, props, body):
     raw_msg:str = body.decode('utf-8')
     try:
+      logging.info(f"Received message: {raw_msg}")
       msg_data = raw_msg.split("-")
       first_id = int(msg_data[1])
       data_len = int(msg_data[3])
