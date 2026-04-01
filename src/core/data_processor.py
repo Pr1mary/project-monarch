@@ -1,5 +1,6 @@
 
 from util.db import DbConn
+from util.queue import Queue
 from util.html_parser import HtmlParser
 from model.raw_email import RawEmailModel
 
@@ -9,8 +10,9 @@ import logging
 
 class DataProcessor:
 
-  def __init__(self, dbconn: DbConn):
+  def __init__(self, dbconn: DbConn, queue: Queue = None):
     self.dbconn = dbconn
+    self.queue = queue
     self.system_id = "monarch-parser"
 
   # 4 params are needed for rabbitmq callback params
@@ -21,6 +23,7 @@ class DataProcessor:
       msg_data = raw_msg.split("-")
       first_id = int(msg_data[1])
       data_len = int(msg_data[3])
+      bill_acc_list = []
       logging.info(f"Email fetched length {data_len} starting at id {first_id}")
 
       raw_result_list = self.fetchRawEmail(first_id, data_len)
@@ -42,7 +45,10 @@ class DataProcessor:
           }
         else:
           continue
-          
+
+        if data.get("data", {}).get("cust_id") not in bill_acc_list:
+          bill_acc_list.append(data.get("data").get("cust_id"))
+
         bill_data_list.append(data)
       
       for bill_data in bill_data_list:
@@ -51,6 +57,10 @@ class DataProcessor:
         else:
           self.insertPaymentLog(bill_data.get("data"))
 
+      for bill_acc_id in bill_acc_list:
+        self.createCalendarEvent(bill_acc_id)
+
+      self.queue.ackMessage(method.delivery_tag)
       logging.info("Processing data finished!")
     except Exception as err:
       traceback.print_exc()
@@ -189,3 +199,12 @@ class DataProcessor:
       logging.error("Failed create payment data")
       return
     
+  def createCalendarEvent(self, bill_acc_id:int):
+
+    if bill_acc_id != None:
+      event_msg = f"remind-{bill_acc_id}"
+    else:
+      logging.warning("Received account with None id...")
+      event_msg = f"remind-{bill_acc_id}"
+
+    self.queue.send("record-calendar", event_msg)
